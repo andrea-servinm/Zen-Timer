@@ -34,7 +34,8 @@ function App() {
   const [customMinutes, setCustomMinutes] = useState<string>('');
   const [remaining, setRemaining] = useState(duration * 60);
   const [status, setStatus] = useState<'ready' | 'running' | 'paused' | 'finished'>('ready');
-  const [bell, setBell] = useState<boolean>(prefs.bell ?? false);
+  const [bell, setBell] = useState<boolean>(prefs.bellExplicit === true ? prefs.bell === true : true);
+  const [bellExplicit, setBellExplicit] = useState<boolean>(prefs.bellExplicit === true);
   const [intervalMinutes, setIntervalMinutes] = useState<number>(prefs.intervalMinutes ?? 0);
   const startedAt = useRef(0);
   const lastInterval = useRef(0);
@@ -60,35 +61,41 @@ function App() {
     try {
       const context = audioContext.current ?? new AudioContext();
       audioContext.current = context;
-      if (context.state === 'suspended') void context.resume();
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.value = 660;
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 1.25);
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start();
-      oscillator.stop(context.currentTime + 1.3);
+      const play = () => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 660;
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.14, context.currentTime + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 1.25);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 1.3);
+      };
+      if (context.state === 'suspended') void context.resume().then(play).catch(() => {});
+      else play();
+    } catch { /* Audio may be unavailable; the timer remains usable. */ }
+  }
+
+  function prepareAudio() {
+    try {
+      const context = audioContext.current ?? new AudioContext();
+      audioContext.current = context;
+      if (context.state === 'suspended') void context.resume().catch(() => {});
     } catch { /* Audio may be unavailable; the timer remains usable. */ }
   }
 
   function changeBell(enabled: boolean) {
-    if (enabled) {
-      try {
-        const context = audioContext.current ?? new AudioContext();
-        audioContext.current = context;
-        if (context.state === 'suspended') void context.resume();
-      } catch { /* Audio may be unavailable; the timer remains usable. */ }
-    }
+    if (enabled) prepareAudio();
     setBell(enabled);
+    setBellExplicit(true);
   }
 
   useEffect(() => {
-    localStorage.setItem('calma-preferences', JSON.stringify({ practiceId, duration, bell, intervalMinutes }));
-  }, [practiceId, duration, bell, intervalMinutes]);
+    localStorage.setItem('calma-preferences', JSON.stringify({ practiceId, duration, bell, bellExplicit, intervalMinutes }));
+  }, [practiceId, duration, bell, bellExplicit, intervalMinutes]);
 
   useEffect(() => {
     if (status !== 'running') return undefined;
@@ -109,6 +116,7 @@ function App() {
   }, [status, duration, bell, intervalMinutes]);
 
   function start() {
+    if (bell) prepareAudio();
     if (status === 'finished') setRemaining(duration * 60);
     startedAt.current = Date.now() - (duration * 60 - (status === 'finished' ? duration * 60 : remaining)) * 1000;
     setStatus('running');
@@ -117,6 +125,7 @@ function App() {
     setStatus('paused');
   }
   function resume() {
+    if (bell) prepareAudio();
     startedAt.current = Date.now() - (duration * 60 - remaining) * 1000;
     setStatus('running');
   }

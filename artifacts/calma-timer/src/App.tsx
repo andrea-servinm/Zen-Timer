@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { RotateCcw, Pause, Play } from 'lucide-react';
+import { RotateCcw, Pause, Play, Leaf } from 'lucide-react';
 
 type PracticeId = 'mindfulness' | 'box' | '478' | 'slow';
 type Phase = { name: string; seconds: number; motion: 'inhale' | 'hold' | 'exhale' };
@@ -143,83 +143,82 @@ function App() {
 
   return (
     <div className="app-shell">
-      <div className="content">
-        <header className="topbar">
-          <div className="brand" aria-label="Calma"><span className="brand-mark" aria-hidden="true">c</span><span>calma</span></div>
-          <span className="top-note">un espacio para volver</span>
+      <main className="zen-layout">
+        <header className="zen-header">
+          <div className="zen-brand" aria-label="Zen Timer">
+            <span>zen timer</span>
+            <Leaf className="brand-leaf" aria-hidden="true" />
+          </div>
         </header>
-        <main className="main">
-          <section className="intro" aria-labelledby="page-title">
-            <div className="eyebrow">Un pequeño paréntesis</div>
-            <h1 id="page-title">Aquí, ahora.</h1>
-            <p>Deja que este momento sea suficiente.</p>
-          </section>
-          <section className="workspace" aria-label="Temporizador de respiración">
-            <div className="timer-panel">
-              <div className="timer-kicker">{practice.name}</div>
-              <div className={`breath-orb ${activePhase?.motion ?? ''}`} aria-hidden="true">
-                <div className="orb-inner">
-                  <div className="time" data-testid="text-time-remaining">{timeText}</div>
-                  <div className="phase" data-testid="status-breath-phase" aria-live="polite">{phaseHint}</div>
-                </div>
-              </div>
-              <p className="state-line" data-testid="status-session" aria-live="polite">
-                {status === 'running' ? 'Estás aquí. Sin prisa.' : status === 'paused' ? 'La sesión está en pausa.' : status === 'finished' ? 'Has llegado hasta aquí. Bien.' : 'Cuando quieras, puedes empezar.'}
-              </p>
-              <div className="controls">
-                {status === 'running' ? (
-                  <button className="primary-btn" onClick={pause} data-testid="button-pause" aria-label="Pausar sesión"><Pause size={15} strokeWidth={1.7} /> <span style={{ marginLeft: 7 }}>Pausar</span></button>
-                ) : status === 'paused' ? (
-                  <button className="primary-btn" onClick={resume} data-testid="button-resume" aria-label="Reanudar sesión"><Play size={15} strokeWidth={1.7} fill="currentColor" /> <span style={{ marginLeft: 7 }}>Reanudar</span></button>
-                ) : (
-                  <button className="primary-btn" onClick={start} data-testid="button-start"><Play size={15} strokeWidth={1.7} fill="currentColor" /> <span style={{ marginLeft: 7 }}>{status === 'finished' ? 'Otra vez' : 'Comenzar'}</span></button>
-                )}
-                <button className="quiet-btn" onClick={reset} aria-label="Reiniciar temporizador" title="Reiniciar" data-testid="button-reset"><RotateCcw /></button>
-              </div>
+
+        <section className="timer-stage" aria-label="Temporizador de meditación">
+          <div className="timer-kicker">{practice.name}</div>
+          <div className={`timer-orbit ${activePhase?.motion ?? ''}`}>
+            <div className="timer-core">
+              <div className="time" data-testid="text-time-remaining" role="timer">{timeText}</div>
+              <div className="phase" data-testid="status-breath-phase" aria-live="polite">{phaseHint}</div>
             </div>
-            <aside className="side-panel" aria-label="Ajustes de práctica">
-              <h2 className="section-label">Práctica</h2>
-              <div className="practice-list" role="group" aria-label="Seleccionar práctica">
-                {practices.map((item) => (
-                  <button key={item.id} type="button" className={`practice-option ${practiceId === item.id ? 'selected' : ''}`} onClick={() => selectPractice(item.id)} aria-pressed={practiceId === item.id} data-testid={`button-practice-${item.id}`}>
-                    <span className="practice-name">{item.name}</span><span className="practice-detail">{item.detail}</span>
-                  </button>
-                ))}
-              </div>
-              <hr className="divider" />
-              <div className="duration-head"><h2 className="section-label">Duración</h2></div>
-              <div className="duration-grid" role="group" aria-label="Duración en minutos">
-                {presets.map((minutes) => <button key={minutes} className={`duration-chip ${duration === minutes ? 'selected' : ''}`} aria-pressed={duration === minutes} onClick={() => selectDuration(minutes)} data-testid={`button-duration-${minutes}`}>{minutes} min</button>)}
-              </div>
-              <form className="custom-row" onSubmit={(event) => { event.preventDefault(); if (customMinutes) selectDuration(Number(customMinutes)); }}>
-                <label htmlFor="custom-duration">Otra duración</label>
-                <input id="custom-duration" className="custom-input" type="number" min="1" max="120" value={customMinutes} onChange={(event) => setCustomMinutes(event.target.value)} aria-label="Duración personalizada en minutos" data-testid="input-custom-duration" />
-                <span>min</span>
-                <button type="submit" aria-label="Aplicar duración personalizada" style={{ border: 0, background: 'transparent', color: '#496e62', cursor: 'pointer', padding: '5px 2px', fontSize: 10, textDecoration: 'underline', textUnderlineOffset: 3 }}>Aplicar</button>
-              </form>
-              <hr className="divider" />
-              <label className="toggle-row" htmlFor="bell-toggle"><span>Campana discreta</span><input id="bell-toggle" className="toggle-control" type="checkbox" checked={bell} onChange={(event) => changeBell(event.target.checked)} data-testid="toggle-bell" /></label>
-              <div className="interval-row">
-                <label htmlFor="interval-select">Avisos por intervalo</label>
-                <select id="interval-select" className="interval-select" value={intervalMinutes} onChange={(event) => setIntervalMinutes(Number(event.target.value))} data-testid="select-interval">
-                  <option value={0}>Desactivados</option><option value={5}>Cada 5 min</option><option value={10}>Cada 10 min</option><option value={15}>Cada 15 min</option>
-                </select>
-              </div>
-              <div className="guide-note">{practiceId === 'mindfulness' ? 'No hay nada que alcanzar.' : 'Suave, sin forzar.'}</div>
-            </aside>
-          </section>
-          <section className="info" aria-label="Información y fuentes">
-            <div>
-              <h2>Una práctica, no una meta.</h2>
-              <p>La atención plena consiste en notar el momento presente sin juzgar. Si la atención se dispersa, vuelve con amabilidad a la respiración; no se trata de dejar la mente en blanco. <a href="https://www.mayoclinic.org/tests-procedures/meditation/in-depth/mindfulness-exercises/art-20046356" target="_blank" rel="noreferrer">Mayo Clinic · 21 ene 2026</a></p>
-              <p style={{ marginTop: 9 }}>La respiración en caja alterna inhalar, sostener, exhalar y sostener a una cuenta cómoda de cuatro. La práctica 4–7–8 y la caja son opciones populares, no superiores ni garantizadas. <a href="https://health.clevelandclinic.org/box-breathing-benefits" target="_blank" rel="noreferrer">Cleveland Clinic</a></p>
-              <p style={{ marginTop: 9 }}>En un estudio comparativo de 2025 con 84 estudiantes, respirar a 6/min elevó más ciertas medidas de variabilidad cardiaca que las otras condiciones, sin cambios significativos de ánimo o presión arterial; se observó sobreventilación leve. La eficacia relativa requiere más investigación. <a href="https://pubmed.ncbi.nlm.nih.gov/39864026" target="_blank" rel="noreferrer">Estudio en PubMed</a></p>
+          </div>
+          <p className="state-line" data-testid="status-session" aria-live="polite">
+            {status === 'running' ? 'Estás aquí. Sin prisa.' : status === 'paused' ? 'La sesión está en pausa.' : status === 'finished' ? 'Has llegado hasta aquí. Bien.' : 'Cuando quieras, puedes empezar.'}
+          </p>
+          <div className="controls">
+            {status === 'running' ? (
+              <button className="primary-btn" onClick={pause} data-testid="button-pause" aria-label="Pausar sesión"><Pause size={16} strokeWidth={1.8} /> Pausar</button>
+            ) : status === 'paused' ? (
+              <button className="primary-btn" onClick={resume} data-testid="button-resume" aria-label="Reanudar sesión"><Play size={16} strokeWidth={1.8} fill="currentColor" /> Reanudar</button>
+            ) : (
+              <button className="primary-btn" onClick={start} data-testid="button-start"><Play size={16} strokeWidth={1.8} fill="currentColor" /> {status === 'finished' ? 'Otra vez' : 'Comenzar'}</button>
+            )}
+            <button className="quiet-btn" onClick={reset} aria-label="Reiniciar temporizador" title="Reiniciar" data-testid="button-reset"><RotateCcw /></button>
+          </div>
+        </section>
+
+        <section className="mode-section" aria-label="Elegir práctica">
+          <div className="mode-grid" role="group" aria-label="Prácticas de meditación">
+            {practices.map((item) => (
+              <button key={item.id} type="button" className={`mode-option ${practiceId === item.id ? 'selected' : ''}`} onClick={() => selectPractice(item.id)} aria-pressed={practiceId === item.id} data-testid={`button-practice-${item.id}`}>
+                <span className="mode-name">{item.name}</span>
+                <span className="mode-detail">{item.detail}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settings-section" aria-label="Ajustes del temporizador">
+          <div className="settings-heading">Duración</div>
+          <div className="duration-grid" role="group" aria-label="Duración en minutos">
+            {presets.map((minutes) => <button key={minutes} type="button" className={`duration-chip ${duration === minutes ? 'selected' : ''}`} aria-pressed={duration === minutes} onClick={() => selectDuration(minutes)} data-testid={`button-duration-${minutes}`}>{minutes} min</button>)}
+          </div>
+          <div className="settings-row">
+            <form className="custom-row" onSubmit={(event) => { event.preventDefault(); if (customMinutes) selectDuration(Number(customMinutes)); }}>
+              <label htmlFor="custom-duration">Otra duración</label>
+              <input id="custom-duration" className="custom-input" type="number" min="1" max="120" value={customMinutes} onChange={(event) => setCustomMinutes(event.target.value)} aria-label="Duración personalizada en minutos" data-testid="input-custom-duration" />
+              <span>min</span>
+              <button type="submit" className="text-button" aria-label="Aplicar duración personalizada" data-testid="button-apply-duration">Aplicar</button>
+            </form>
+            <label className="toggle-row" htmlFor="bell-toggle"><span>Campana</span><input id="bell-toggle" className="toggle-control" type="checkbox" checked={bell} onChange={(event) => changeBell(event.target.checked)} data-testid="toggle-bell" /></label>
+            <div className="interval-row">
+              <label htmlFor="interval-select">Avisos</label>
+              <select id="interval-select" className="interval-select" value={intervalMinutes} onChange={(event) => setIntervalMinutes(Number(event.target.value))} data-testid="select-interval">
+                <option value={0}>Sin intervalos</option><option value={5}>Cada 5 min</option><option value={10}>Cada 10 min</option><option value={15}>Cada 15 min</option>
+              </select>
             </div>
-            <aside className="safety">Hazlo a una cuenta cómoda y no fuerces las retenciones. Si sientes mareo o incomodidad, detente y vuelve a tu respiración natural. <a href="https://www.nhsinform.scot/healthy-living/mental-wellbeing/breathing-and-relaxation-exercises/tips-for-doing-breathing-and-relaxation-exercises" target="_blank" rel="noreferrer">Consejos de NHS inform</a>. Esta herramienta no es un tratamiento médico.</aside>
-          </section>
-          <footer className="footer">CALMA · UN MOMENTO A LA VEZ</footer>
-        </main>
-      </div>
+          </div>
+        </section>
+
+        <details className="guide-details">
+          <summary>Prácticas seguras y fuentes</summary>
+          <div className="guide-content">
+            <p>La atención plena consiste en notar el momento presente sin juzgar. Si la atención se dispersa, vuelve con amabilidad a la respiración; no se trata de dejar la mente en blanco. <a href="https://www.mayoclinic.org/tests-procedures/meditation/in-depth/mindfulness-exercises/art-20046356" target="_blank" rel="noreferrer">Mayo Clinic · 21 ene 2026</a></p>
+            <p>La respiración en caja alterna inhalar, sostener, exhalar y sostener a una cuenta cómoda de cuatro. La práctica 4–7–8 y la caja son opciones populares, no superiores ni garantizadas. <a href="https://health.clevelandclinic.org/box-breathing-benefits" target="_blank" rel="noreferrer">Cleveland Clinic</a></p>
+            <p>En un estudio comparativo de 2025 con 84 estudiantes, respirar a 6/min elevó más ciertas medidas de variabilidad cardiaca que las otras condiciones, sin cambios significativos de ánimo o presión arterial; se observó sobreventilación leve. La eficacia relativa requiere más investigación. <a href="https://pubmed.ncbi.nlm.nih.gov/39864026" target="_blank" rel="noreferrer">Estudio en PubMed</a></p>
+            <p className="safety">Hazlo a una cuenta cómoda y no fuerces las retenciones. Si sientes mareo o incomodidad, detente y vuelve a tu respiración natural. <a href="https://www.nhsinform.scot/healthy-living/mental-wellbeing/breathing-and-relaxation-exercises/tips-for-doing-breathing-and-relaxation-exercises" target="_blank" rel="noreferrer">Consejos de NHS inform</a>. Esta herramienta no es un tratamiento médico.</p>
+          </div>
+        </details>
+
+        <footer className="footer">CALMA · UN MOMENTO A LA VEZ</footer>
+      </main>
     </div>
   );
 }

@@ -1,0 +1,1 @@
+- [Calma: interfaz minimalista](calma-minimalismo.md) — mantener el temporizador al centro y evitar distracciones.

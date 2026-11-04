@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Calma — Temporizador de meditación"
+description = "Un temporizador de meditación en español, minimalista y centrado en sesiones guiadas por tiempo, respiración en caja, respiración 4-7-8 y prácticas de atención plena."
+version = "1.0.0"
+id = "artifacts/calma-timer"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21181
+
+[services.development]
+run = "pnpm --filter @workspace/calma-timer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/calma-timer", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/calma-timer/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21181"
+BASE_PATH = "/"

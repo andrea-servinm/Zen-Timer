@@ -54,3 +54,5 @@ pnpm --filter @workspace/calma-timer run build
 Este proyecto fue realizado con **Replit** en el marco del curso **Vibe Coding con Replit** de DataCamp:
 
 https://www.datacamp.com/courses/vibe-coding-with-replit
+
+© 2026 · GitHub: [@andrea-servinm](https://github.com/andrea-servinm)

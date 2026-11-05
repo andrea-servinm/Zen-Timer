@@ -226,7 +226,12 @@ function App() {
           </div>
         </details>
 
-        <footer className="footer">CALMA · UN MOMENTO A LA VEZ</footer>
+        <footer className="footer">
+          <span>CALMA · UN MOMENTO A LA VEZ</span>
+          <a className="footer-credit" href="https://github.com/andrea-servinm" target="_blank" rel="noreferrer">
+            © 2026 · @andrea-servinm
+          </a>
+        </footer>
       </main>
     </div>
   );

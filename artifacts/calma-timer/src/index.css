@@ -103,7 +103,9 @@ button:focus-visible, input:focus-visible, a:focus-visible, select:focus-visible
 .guide-content p { margin: 8px 0; }
 .guide-content a { color: #b2bdff; text-underline-offset: 3px; }
 .safety { border-left: 2px solid #7588ff; padding: 7px 0 7px 11px; }
-.footer { padding-top: 16px; color: #9ca8b6; font-family: var(--app-font-display); font-size: 16px; letter-spacing: .08em; }
+.footer { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 16px; color: #9ca8b6; font-family: var(--app-font-display); font-size: 16px; letter-spacing: .08em; }
+.footer-credit { color: #aab6c4; font-family: var(--app-font-sans); font-size: 10px; letter-spacing: .04em; text-decoration: none; }
+.footer-credit:hover { color: #c2cbff; text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 600px) {
   .app-shell { padding: 6px; }
